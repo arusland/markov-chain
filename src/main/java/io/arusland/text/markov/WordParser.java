@@ -123,7 +123,7 @@ public class WordParser {
 
     private boolean isEndChar(char ch) {
         return ch == '.' || ch == '?' || ch == '!' || ch == ';' ||
-                ch == '…' || ch == ':' || ch == '[' || ch == ']';
+                ch == '…' || ch == ':';
     }
 
     private boolean isLegalWord(String word) {
