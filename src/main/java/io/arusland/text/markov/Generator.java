@@ -12,7 +12,7 @@ import java.util.*;
 public class Generator {
     private final Map<String, Map<String, Integer>> words;
     private final SecureRandom random = new SecureRandom();
-    private final List<String> commaTokens = Arrays.asList("но", "а", "что", "чтобы");
+    private final List<String> commaTokens = Arrays.asList("но", "а", "что", "чтобы", "который", "которая", "которые", "когда");
 
     public Generator(Map<String, Map<String, Integer>> words) {
         this.words = words;
@@ -25,7 +25,7 @@ public class Generator {
     public String generate(int charCountMax, String firstWord) {
         StringBuilder sb = new StringBuilder(charCountMax);
 
-        String word = StringUtils.isBlank(firstWord) ? getFirstWord() : firstWord.toLowerCase();
+        String word = selectFirstWord(firstWord);
         String prevWord = null;
 
         while (word != null) {
@@ -54,6 +54,26 @@ public class Generator {
         }
 
         return sb.toString();
+    }
+
+    private String selectFirstWord(String firstWord) {
+        if (StringUtils.isBlank(firstWord)) {
+            return getFirstWord();
+        }
+
+        if (words.containsKey(firstWord)) {
+            return firstWord;
+        }
+
+        firstWord = firstWord.toLowerCase();
+
+        if (words.containsKey(firstWord)) {
+            return firstWord;
+        }
+
+        firstWord = StringUtils.capitalize(firstWord);
+
+        return firstWord;
     }
 
     private String makePrefix(String nextWord, String prevWord) {

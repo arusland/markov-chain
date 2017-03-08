@@ -5,13 +5,11 @@ import io.arusland.text.markov.WordParser;
 import io.arusland.text.markov.Wordogram;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
-import java.nio.charset.Charset;
+import java.io.Console;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,9 +28,6 @@ public class Main {
 
     private void run(String[] args) throws IOException {
         System.out.println("Type 'h' for help");
-        System.out.println("Default charset: " +
-                Charset.defaultCharset().name());
-
         Console console = System.console();
 
         if (args.length > 0) {
@@ -65,7 +60,7 @@ public class Main {
             } else if ("h".equals(command)) {
                 printHelp();
             } else if ("stat".equals(command)) {
-                printStats();
+                printStats(cmd);
             } else if ("gen".equals(command)) {
                 generateText(cmd);
             } else if ("load".equals(command)) {
@@ -94,15 +89,59 @@ public class Main {
     private void printHelp() {
         System.out.println("q - exit");
         System.out.println("stat - Prints statistics");
+        System.out.println("stat <word> - Prints statistics related with word");
         System.out.println("load <file_name> - Loads file");
         System.out.println("gen <max_symbols_count> - Generate text");
         System.out.println("gen <max_symbols_count> <first_word> - Generate text which starts with <first_word>");
     }
 
-    private void printStats() {
-        Map<String, Map<String, Integer>> words = wordogram.getWords();
-        System.out.println("unique words: " + words.size());
-        System.out.println("names       : " + names.size());
+    private void printStats(List<String> cmd) {
+        if (cmd.isEmpty() || cmd.size() == 1) {
+            Map<String, Map<String, Integer>> words = wordogram.getWords();
+            System.out.println("unique words: " + words.size());
+            System.out.println("names       : " + names.size());
+        } else if (cmd.size() > 1) {
+            String word = cmd.get(1);
+            String wordCap = StringUtils.capitalize(word);
+            String wordLowed = word.toLowerCase();
+
+            printStats(word);
+
+            if (!wordCap.equals(word)) {
+                printStats(wordCap);
+            }
+
+            if (!wordLowed.equals(word) && !wordLowed.equals(wordCap)) {
+                printStats(wordLowed);
+            }
+        }
+    }
+
+    private void printStats(String word) {
+        Map<String, Integer> map = wordogram.getWords().get(word);
+        Integer count = stats.get(word);
+
+        if (map != null || count != null) {
+            System.out.println("Statistics for word '" + word + "'");
+
+            if (map != null) {
+                System.out.println("Words after the word");
+                List<String> sortedWords = sortByCount(map);
+
+                for (String nextWord : sortedWords) {
+                    if (Wordogram.TOKEN_END.equals(nextWord)) {
+                        System.out.println("<END>: " + map.get(nextWord));
+                    } else {
+                        System.out.println(nextWord + ": " + map.get(nextWord));
+                    }
+                }
+            }
+
+            if (count != null) {
+                System.out.println("Used " + count + " times");
+            }
+            System.out.println("");
+        }
     }
 
     private void loadFile(String fileName) throws IOException {
@@ -113,10 +152,26 @@ public class Main {
         words.forEach(word -> wordogram.addNext(word));
 
         generator = null;
-        printStats();
+        printStats(Collections.emptyList());
     }
 
     private Generator getGenerator() {
         return generator != null ? generator : (generator = new Generator(wordogram.getWords()));
+    }
+
+    private List<String> sortByCount(Map<String, Integer> words) {
+        List<String> result = new ArrayList<>(words.keySet());
+
+        result.sort((s1, s2) -> {
+            int cmd = words.get(s2).compareTo(words.get(s1));
+
+            if (cmd != 0) {
+                return cmd;
+            }
+
+            return s1.compareTo(s2);
+        });
+
+        return result;
     }
 }
