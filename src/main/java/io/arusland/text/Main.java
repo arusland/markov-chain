@@ -87,8 +87,8 @@ public class Main {
         String firstWord = cmd.size() >= 3 ? cmd.get(2) : null;
         String text = generator.generate(Integer.parseInt(cmd.get(1)), firstWord);
 
-        System.out.println("");
         System.out.println(text);
+        System.out.println("");
     }
 
     private void printHelp() {

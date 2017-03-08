@@ -3,8 +3,7 @@ package io.arusland.text.markov;
 import org.apache.commons.lang3.StringUtils;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Ruslan Absalyamov
@@ -13,6 +12,7 @@ import java.util.Map;
 public class Generator {
     private final Map<String, Map<String, Integer>> words;
     private final SecureRandom random = new SecureRandom();
+    private final List<String> commaTokens = Arrays.asList("но", "а", "что", "чтобы");
 
     public Generator(Map<String, Map<String, Integer>> words) {
         this.words = words;
@@ -29,11 +29,14 @@ public class Generator {
         String prevWord = null;
 
         while (word != null) {
-            if ((sb.length() + word.length() + 1) > charCountMax) {
+            String prefix = makePrefix(word, prevWord);
+
+            if ((sb.length() + word.length() + prefix.length()) > charCountMax) {
                 break;
             }
-            if (sb.length() > 0 && !Wordogram.TOKEN_END.equals(word)) {
-                sb.append(' ');
+
+            if (!prefix.isEmpty()) {
+                sb.append(prefix);
             }
 
             if (Wordogram.TOKEN_END.equals(prevWord) || sb.length() == 0) {
@@ -51,6 +54,18 @@ public class Generator {
         }
 
         return sb.toString();
+    }
+
+    private String makePrefix(String nextWord, String prevWord) {
+        if (prevWord != null && !Wordogram.TOKEN_END.equals(nextWord)) {
+            if (!Wordogram.TOKEN_END.equals(prevWord) && commaTokens.contains(nextWord)) {
+                return ", ";
+            }
+
+            return " ";
+        }
+
+        return "";
     }
 
     private String getNextWord(String word) {

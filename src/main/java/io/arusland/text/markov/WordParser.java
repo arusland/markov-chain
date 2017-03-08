@@ -131,7 +131,13 @@ public class WordParser {
             return false;
         }
 
-        return true;
+        for (int i = 0; i < word.length(); i++) {
+            if (!Character.isDigit(word.charAt(i))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean isRussianChar(char ch) {
