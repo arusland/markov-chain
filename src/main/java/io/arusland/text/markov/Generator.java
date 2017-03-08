@@ -19,9 +19,13 @@ public class Generator {
     }
 
     public String generate(int charCountMax) {
+        return generate(charCountMax, null);
+    }
+
+    public String generate(int charCountMax, String firstWord) {
         StringBuilder sb = new StringBuilder(charCountMax);
 
-        String word = getFirstWord();
+        String word = StringUtils.isBlank(firstWord) ? getFirstWord() : firstWord.toLowerCase();
         String prevWord = null;
 
         while (word != null) {

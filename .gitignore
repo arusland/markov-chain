@@ -2,3 +2,5 @@
 /test
 /target
 /*.iml
+/bin/*.jar
+/dist/*.jar

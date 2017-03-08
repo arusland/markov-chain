@@ -67,4 +67,25 @@ public class WordParserTest {
             System.out.println(generator.generate(140));
         }
     }
+
+    @Test
+    public void testFromFileWithFirstWord() throws URISyntaxException, IOException {
+        WordParser parser = new WordParser();
+        Wordogram wordogram = new Wordogram();
+        Map<String, String> names = new HashMap<>();
+        Map<String, Integer> stats = new HashMap<>();
+
+        String raw = new String(Files.readAllBytes(
+                new File("d:\\WORK\\MyProjects\\Markov_chain\\test\\war_and_peace_1.txt").toPath()));
+        List<String> words = parser.parse(raw, names, stats);
+
+        words.forEach(word -> wordogram.addNext(word));
+
+        System.out.println("raw length: " + raw.length());
+        System.out.println("words size: " + wordogram.getWords().size());
+
+        Generator generator = new Generator(wordogram.getWords());
+
+        System.out.println(generator.generate(140, "Она"));
+    }
 }

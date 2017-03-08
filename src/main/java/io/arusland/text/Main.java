@@ -5,47 +5,42 @@ import io.arusland.text.markov.WordParser;
 import io.arusland.text.markov.Wordogram;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
  * Created by ruslan on 07.01.2017.
  */
 public class Main {
-    private final  Wordogram wordogram = new Wordogram();
-    private WordParser parser = new WordParser();
+    private final Wordogram wordogram = new Wordogram();
+    private final WordParser parser = new WordParser();
+    private final Map<String, String> names = new HashMap<>();
+    private final Map<String, Integer> stats = new HashMap<>();
     private Generator generator;
-    private Map<String, String> names = new HashMap<>();
-    private Map<String, Integer> stats = new HashMap<>();
 
     public static void main(String args[]) throws IOException {
-        if (args.length == 0) {
-            System.out.println("Markov chain text generator v1.0");
-            System.out.println("Usage:\n\tmarkov file");
-            System.exit(1);
-        }
-
         new Main().run(args);
     }
 
     private void run(String[] args) throws IOException {
         System.out.println("Type 'h' for help");
+        System.out.println("Default charset: " +
+                Charset.defaultCharset().name());
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        Console console = System.console();
 
-        handleCommand(Arrays.asList("load", args[0]));
+        if (args.length > 0) {
+            handleCommand(Arrays.asList("load", args[0]));
+        }
 
         while (true) {
-            String line = br.readLine();
+            String line = console.readLine();
 
             List<String> cmd = Arrays.stream(line.split("\\s+"))
                     .filter(p -> StringUtils.isNoneBlank(p))
@@ -67,21 +62,18 @@ public class Main {
 
             if ("q".equals(command)) {
                 System.exit(0);
-            }
-
-            if ("h".equals(command)) {
+            } else if ("h".equals(command)) {
                 printHelp();
-            }
-
-            if ("gen".equals(command)) {
+            } else if ("stat".equals(command)) {
+                printStats();
+            } else if ("gen".equals(command)) {
                 generateText(cmd);
-            }
-
-            if ("load".equals(command)) {
+            } else if ("load".equals(command)) {
                 loadFile(cmd.get(1));
+            } else {
+                return false;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("ERROR: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return false;
         }
@@ -92,7 +84,8 @@ public class Main {
     private void generateText(List<String> cmd) {
         Generator generator = getGenerator();
 
-        String text = generator.generate(Integer.parseInt(cmd.get(1)));
+        String firstWord = cmd.size() >= 3 ? cmd.get(2) : null;
+        String text = generator.generate(Integer.parseInt(cmd.get(1)), firstWord);
 
         System.out.println("");
         System.out.println(text);
@@ -100,19 +93,10 @@ public class Main {
 
     private void printHelp() {
         System.out.println("q - exit");
+        System.out.println("stat - Prints statistics");
         System.out.println("load <file_name> - Loads file");
         System.out.println("gen <max_symbols_count> - Generate text");
-    }
-
-    private void loadFile(String fileName) throws IOException {
-        System.out.println("Loading file " + fileName);
-        File file  = new File(fileName);
-
-        String raw = new String(Files.readAllBytes(file.toPath()));
-        List<String> words = parser.parse(raw, names, stats);
-
-        words.forEach(word -> wordogram.addNext(word));
-        printStats();
+        System.out.println("gen <max_symbols_count> <first_word> - Generate text which starts with <first_word>");
     }
 
     private void printStats() {
@@ -121,7 +105,18 @@ public class Main {
         System.out.println("names       : " + names.size());
     }
 
-    public Generator getGenerator() {
+    private void loadFile(String fileName) throws IOException {
+        System.out.println("Loading file " + fileName);
+        File file = new File(fileName);
+        String raw = new String(Files.readAllBytes(file.toPath()));
+        List<String> words = parser.parse(raw, names, stats);
+        words.forEach(word -> wordogram.addNext(word));
+
+        generator = null;
+        printStats();
+    }
+
+    private Generator getGenerator() {
         return generator != null ? generator : (generator = new Generator(wordogram.getWords()));
     }
 }
