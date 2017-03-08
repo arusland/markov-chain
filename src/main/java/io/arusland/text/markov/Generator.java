@@ -12,6 +12,7 @@ import java.util.*;
 public class Generator {
     private final Map<String, Map<String, Integer>> words;
     private final SecureRandom random = new SecureRandom();
+    private boolean useSmartNextWord = true;
     private final List<String> commaTokens = Arrays.asList("но", "а", "что", "чтобы",
             "который", "которая", "которые", "которую", "когда");
 
@@ -57,6 +58,14 @@ public class Generator {
         return sb.toString();
     }
 
+    public boolean isUseSmartNextWord() {
+        return useSmartNextWord;
+    }
+
+    public void setUseSmartNextWord(boolean useSmartNextWord) {
+        this.useSmartNextWord = useSmartNextWord;
+    }
+
     private String selectFirstWord(String firstWord) {
         if (StringUtils.isBlank(firstWord)) {
             return getFirstWord();
@@ -89,20 +98,51 @@ public class Generator {
         return "";
     }
 
+    private String getFirstWord() {
+        return getNextWord(Wordogram.TOKEN_END);
+    }
+
     private String getNextWord(String word) {
+        return useSmartNextWord ? getNextWordSmart(word) : getNextWordSimple(word);
+    }
+
+    /**
+     * Returns next word according to frequency of next words.
+     */
+    private String getNextWordSmart(String word) {
         Map<String, Integer> map = words.get(word);
 
         if (map != null) {
-            ArrayList<String> wrds = new ArrayList<String>(map.keySet());
+            Map<String, Integer[]> wordRanges = new HashMap<>();
+            int maxEdge = 0;
 
-            return wrds.get(random.nextInt(wrds.size()));
+            for (String nextWord : map.keySet()) {
+                int nextMaxEdge = maxEdge + map.get(nextWord);
+                wordRanges.put(nextWord, new Integer[]{maxEdge, nextMaxEdge - 1});
+                maxEdge = nextMaxEdge;
+            }
+
+            int index = random.nextInt(maxEdge);
+
+            for (String nextWord : wordRanges.keySet()) {
+                Integer[] range = wordRanges.get(nextWord);
+
+                if (index >= range[0] && index <= range[1]) {
+                    return nextWord;
+                }
+            }
+
+            throw new RuntimeException("Unreachable code reached!");
         }
 
         return null;
     }
 
-    private String getFirstWord() {
-        Map<String, Integer> map = words.get(Wordogram.TOKEN_END);
+    /**
+     * Returns simply random next word.
+     */
+    private String getNextWordSimple(String word) {
+        Map<String, Integer> map = words.get(word);
 
         if (map != null) {
             ArrayList<String> wrds = new ArrayList<String>(map.keySet());

@@ -21,6 +21,7 @@ public class Main {
     private final Map<String, String> names = new HashMap<>();
     private final Map<String, Integer> stats = new HashMap<>();
     private Generator generator;
+    private boolean propertySmartNextWord = true;
 
     public static void main(String args[]) throws IOException {
         new Main().run(args);
@@ -68,6 +69,8 @@ public class Main {
                 loadFile(cmd.get(1));
             } else if ("clear".equals(command)) {
                 clear();
+            } else if ("set".equals(command)) {
+                setProperty(cmd);
             } else {
                 return false;
             }
@@ -77,6 +80,24 @@ public class Main {
         }
 
         return true;
+    }
+
+    private void setProperty(List<String> cmd) {
+        if (cmd.size() >= 3) {
+            String property = cmd.get(1);
+            String value = cmd.get(2);
+
+            if ("nextword.smart".equals(property)) {
+                propertySmartNextWord = Boolean.parseBoolean(value);
+                getGenerator().setUseSmartNextWord(propertySmartNextWord);
+            } else {
+                throw new RuntimeException("Unknown property: " + property);
+            }
+
+            System.out.println(String.format("Property '%s' was set to '%s'", property, value));
+        } else {
+            throw new RuntimeException("Invalid command using.");
+        }
     }
 
     private void clear() {
@@ -103,6 +124,7 @@ public class Main {
         System.out.println("stat <word> - Prints statistics related with word");
         System.out.println("load <file_name> - Loads file");
         System.out.println("clear - Clears all buffers");
+        System.out.println("set <property_name> <property_value> - Set property value.");
         System.out.println("q - exit");
     }
 
@@ -176,7 +198,12 @@ public class Main {
     }
 
     private Generator getGenerator() {
-        return generator != null ? generator : (generator = new Generator(wordogram.getWords()));
+        if (generator == null) {
+            generator = new Generator(wordogram.getWords());
+            generator.setUseSmartNextWord(propertySmartNextWord);
+        }
+
+        return generator;
     }
 
     private List<String> sortByCount(Map<String, Integer> words) {
