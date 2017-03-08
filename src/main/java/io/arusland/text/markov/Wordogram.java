@@ -38,4 +38,8 @@ public class Wordogram {
     public Map<String, Map<String, Integer>> getWords() {
         return words;
     }
+
+    public void clear() {
+        words.clear();
+    }
 }

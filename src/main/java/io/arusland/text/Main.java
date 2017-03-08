@@ -27,6 +27,7 @@ public class Main {
     }
 
     private void run(String[] args) throws IOException {
+        System.out.println("Markov chain based text generator v1.0");
         System.out.println("Type 'h' for help");
         Console console = System.console();
 
@@ -65,6 +66,8 @@ public class Main {
                 generateText(cmd);
             } else if ("load".equals(command)) {
                 loadFile(cmd.get(1));
+            } else if ("clear".equals(command)) {
+                clear();
             } else {
                 return false;
             }
@@ -74,6 +77,13 @@ public class Main {
         }
 
         return true;
+    }
+
+    private void clear() {
+        wordogram.clear();
+        names.clear();
+        generator = null;
+        System.out.println("All buffers are cleared.");
     }
 
     private void generateText(List<String> cmd) {
@@ -91,8 +101,9 @@ public class Main {
         System.out.println("stat - Prints statistics");
         System.out.println("stat <word> - Prints statistics related with word");
         System.out.println("load <file_name> - Loads file");
-        System.out.println("gen <max_symbols_count> - Generate text");
-        System.out.println("gen <max_symbols_count> <first_word> - Generate text which starts with <first_word>");
+        System.out.println("clear - Clears all buffers");
+        System.out.println("gen <max_symbols_count> - Generates text");
+        System.out.println("gen <max_symbols_count> <first_word> - Generates text started with <first_word>");
     }
 
     private void printStats(List<String> cmd) {
@@ -105,19 +116,23 @@ public class Main {
             String wordCap = StringUtils.capitalize(word);
             String wordLowed = word.toLowerCase();
 
-            printStats(word);
+            boolean wordExists = printStats(word);
 
             if (!wordCap.equals(word)) {
-                printStats(wordCap);
+                wordExists |= printStats(wordCap);
             }
 
             if (!wordLowed.equals(word) && !wordLowed.equals(wordCap)) {
-                printStats(wordLowed);
+                wordExists |= printStats(wordLowed);
+            }
+
+            if (!wordExists) {
+                System.out.println("Unknown word!");
             }
         }
     }
 
-    private void printStats(String word) {
+    private boolean printStats(String word) {
         Map<String, Integer> map = wordogram.getWords().get(word);
         Integer count = stats.get(word);
 
@@ -125,14 +140,14 @@ public class Main {
             System.out.println("Statistics for word '" + word + "'");
 
             if (map != null) {
-                System.out.println("Words after the word");
+                System.out.println("There are " + map.size() + " words after the word '" + word + "':");
                 List<String> sortedWords = sortByCount(map);
 
                 for (String nextWord : sortedWords) {
                     if (Wordogram.TOKEN_END.equals(nextWord)) {
-                        System.out.println("<END>: " + map.get(nextWord));
+                        System.out.println("  <END>: " + map.get(nextWord));
                     } else {
-                        System.out.println(nextWord + ": " + map.get(nextWord));
+                        System.out.println("  " + nextWord + ": " + map.get(nextWord));
                     }
                 }
             }
@@ -141,7 +156,11 @@ public class Main {
                 System.out.println("Used " + count + " times");
             }
             System.out.println("");
+
+            return true;
         }
+
+        return false;
     }
 
     private void loadFile(String fileName) throws IOException {

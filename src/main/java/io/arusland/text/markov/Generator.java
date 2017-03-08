@@ -12,7 +12,8 @@ import java.util.*;
 public class Generator {
     private final Map<String, Map<String, Integer>> words;
     private final SecureRandom random = new SecureRandom();
-    private final List<String> commaTokens = Arrays.asList("но", "а", "что", "чтобы", "который", "которая", "которые", "когда");
+    private final List<String> commaTokens = Arrays.asList("но", "а", "что", "чтобы",
+            "который", "которая", "которые", "которую", "когда");
 
     public Generator(Map<String, Map<String, Integer>> words) {
         this.words = words;
