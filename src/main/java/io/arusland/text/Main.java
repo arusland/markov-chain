@@ -97,13 +97,13 @@ public class Main {
     }
 
     private void printHelp() {
-        System.out.println("q - exit");
+        System.out.println("gen <max_symbols_count> - Generates text");
+        System.out.println("gen <max_symbols_count> <first_word> - Generates text started with <first_word>");
         System.out.println("stat - Prints statistics");
         System.out.println("stat <word> - Prints statistics related with word");
         System.out.println("load <file_name> - Loads file");
         System.out.println("clear - Clears all buffers");
-        System.out.println("gen <max_symbols_count> - Generates text");
-        System.out.println("gen <max_symbols_count> <first_word> - Generates text started with <first_word>");
+        System.out.println("q - exit");
     }
 
     private void printStats(List<String> cmd) {
