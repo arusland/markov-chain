@@ -137,7 +137,11 @@ public class Main {
         Integer count = stats.get(word);
 
         if (map != null || count != null) {
-            System.out.println("Statistics for word '" + word + "'");
+            System.out.println("Statistics for the word '" + word + "'");
+
+            if (count != null) {
+                System.out.println("Used " + count + " times");
+            }
 
             if (map != null) {
                 System.out.println("There are " + map.size() + " words after the word '" + word + "':");
@@ -152,9 +156,6 @@ public class Main {
                 }
             }
 
-            if (count != null) {
-                System.out.println("Used " + count + " times");
-            }
             System.out.println("");
 
             return true;
